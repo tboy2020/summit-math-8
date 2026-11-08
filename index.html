@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b1220">
+<meta name="description" content="Summit Math 8 — master every Grade-8 standard with step-by-step practice and an interactive graph lab.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Summit Math 8</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b1220; --bg2:#0f1a30; --card:#16223d; --card2:#1c2a49;
+    --line:#26365c; --ink:#e8eefc; --muted:#9aabcf; --faint:#8794bf;
+    --indigo:#818cf8; --indigo-d:#5b63d6; --emerald:#34d399; --emerald-d:#10a877;
+    --amber:#fbbf24; --rose:#fb7185; --sky:#38bdf8;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{margin:0; font-family:'Inter',system-ui,sans-serif; color:var(--ink);
+    background:radial-gradient(120% 80% at 50% -10%, var(--bg2), var(--bg) 70%) fixed;
+    overflow:hidden; -webkit-user-select:none; user-select:none;}
+  .app{height:100%; max-width:720px; margin:0 auto; display:flex; flex-direction:column; padding:14px 16px 16px;}
+  .screen{flex:1; display:none; flex-direction:column; min-height:0;}
+  .screen.on{display:flex;}
+  .scrolly{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif; margin:0; font-weight:700;}
+  .mono{font-family:'Space Grotesk',ui-monospace,monospace;}
+
+  /* top */
+  .top{display:flex; align-items:center; gap:10px; margin-bottom:14px; flex:0 0 auto;}
+  .logo{font-family:'Space Grotesk'; font-weight:700; font-size:19px; letter-spacing:-.3px; display:flex; align-items:center; gap:8px; white-space:nowrap; flex:0 0 auto;}
+  .logo .mk{width:30px; height:30px; border-radius:9px; background:linear-gradient(135deg,var(--indigo),var(--emerald)); display:flex; align-items:center; justify-content:center; font-size:16px;}
+  .iconbtn{width:42px; height:42px; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:12px; cursor:pointer; font-size:17px;}
+  .iconbtn:active{transform:translateY(1px);}
+  .back{margin-right:2px;}
+  .spacer{flex:1;}
+  .pctchip{border:1px solid var(--line); background:var(--card); border-radius:999px; padding:6px 12px; font-weight:700; font-size:13px; font-family:'Space Grotesk'; white-space:nowrap;}
+  .pctchip b{color:var(--emerald);}
+
+  /* dashboard */
+  .hero{background:linear-gradient(135deg,var(--card2),var(--card)); border:1px solid var(--line); border-radius:18px; padding:20px; margin-bottom:16px;}
+  .hero h2{font-size:21px; margin-bottom:4px;}
+  .hero p{color:var(--muted); font-size:14px; margin:0 0 14px; line-height:1.5;}
+  .bar{height:12px; border-radius:999px; background:#0c1526; overflow:hidden; border:1px solid var(--line);}
+  .bar>i{display:block; height:100%; background:linear-gradient(90deg,var(--indigo),var(--emerald)); width:0;}
+  .herorow{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;}
+  .btn{border:none; cursor:pointer; font-family:'Space Grotesk'; font-weight:700; font-size:15px; border-radius:12px; padding:12px 18px;}
+  .btn.primary{background:var(--indigo); color:#0b1220; box-shadow:0 4px 0 var(--indigo-d);}
+  .btn.primary:active{transform:translateY(3px); box-shadow:0 1px 0 var(--indigo-d);}
+  .btn.soft{background:var(--card); border:1px solid var(--line); color:var(--ink);}
+  .btn.soft:active{transform:translateY(1px);}
+
+  .domain{margin-bottom:18px;}
+  .domain h3{font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); margin-bottom:9px; display:flex; align-items:center; gap:8px;}
+  .domain h3 .std{color:var(--indigo); font-weight:600;}
+  .skill{display:flex; align-items:center; gap:12px; width:100%; text-align:left; cursor:pointer;
+    background:var(--card); border:1px solid var(--line); border-radius:13px; padding:13px 14px; margin-bottom:8px; color:var(--ink);}
+  .skill:active{transform:translateY(1px);}
+  .skill .nm{flex:1; font-weight:600; font-size:15px;}
+  .skill .meter{display:flex; gap:4px;}
+  .dot{width:9px; height:9px; border-radius:50%; background:#2a3b63; border:1px solid #3a4d78;}
+  .dot.on{background:var(--emerald); border-color:var(--emerald-d);}
+  .skill.done{border-color:var(--emerald-d);}
+  .skill .tag{font-size:11px; font-weight:700; color:var(--emerald); font-family:'Space Grotesk';}
+  .skill.review{border-color:var(--amber);}
+  .skill .tag.rev{color:var(--amber);}
+
+  /* practice */
+  .pwrap{flex:1; display:flex; flex-direction:column; min-height:0; width:100%; max-width:560px; margin:0 auto;}
+  .phead{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .phead .nm{font-family:'Space Grotesk'; font-weight:700; font-size:16px;}
+  .pips{display:flex; gap:6px; margin-left:auto;}
+  .pip{width:13px; height:13px; border-radius:50%; background:#2a3b63; border:1px solid #3a4d78;}
+  .pip.on{background:var(--emerald); border-color:var(--emerald-d);}
+  .qcard{flex:1; display:flex; flex-direction:column; justify-content:flex-start; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:24px 18px; min-height:0; overflow-y:auto;}
+  .qwhy{color:var(--muted); font-size:13px; margin-bottom:12px;}
+  .qtext{font-size:clamp(19px,5vw,24px); font-weight:600; line-height:1.4;}
+  .qeq{font-family:'Space Grotesk'; font-weight:700; font-size:clamp(24px,7vw,34px); margin:14px 0; color:#fff; white-space:pre-line;}
+  .qsvg{display:flex; justify-content:center; margin:10px 0;}
+  .ansrow{display:flex; gap:10px; margin-top:16px;}
+  .ans{flex:1; font-family:'Space Grotesk'; font-weight:700; font-size:22px; text-align:center; color:var(--ink);
+    background:#0c1526; border:2px solid var(--line); border-radius:12px; padding:14px; outline:none; min-width:0;}
+  .ans:focus{border-color:var(--indigo);}
+  .ans.good{border-color:var(--emerald); color:var(--emerald);}
+  .ans.bad{border-color:var(--rose); color:var(--rose);}
+  .choices{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px;}
+  .choice{border:2px solid var(--line); background:#0c1526; color:var(--ink); border-radius:12px; padding:15px 12px; cursor:pointer; font-family:'Space Grotesk'; font-weight:600; font-size:17px;}
+  .choice:active{transform:translateY(1px);}
+  .choice.good{border-color:var(--emerald); background:rgba(52,211,153,.12); color:var(--emerald);}
+  .choice.bad{border-color:var(--rose); background:rgba(251,113,133,.1); color:var(--rose);}
+  .pbtns{display:flex; gap:10px; margin-top:12px; padding-top:4px; flex:0 0 auto;}
+  .steps{margin-top:14px; background:#0c1526; border:1px solid var(--line); border-radius:12px; padding:14px 16px;}
+  .steps .st{font-size:13px; letter-spacing:.06em; text-transform:uppercase; color:var(--indigo); font-weight:700; margin-bottom:8px; font-family:'Space Grotesk';}
+  .steps ol{margin:0; padding-left:20px;}
+  .steps li{margin:5px 0; font-size:15px; line-height:1.5; color:var(--muted);}
+  .steps li b{color:var(--ink);}
+  .fb{min-height:22px; text-align:center; font-weight:700; font-family:'Space Grotesk'; margin-top:10px;}
+  .fb.good{color:var(--emerald);} .fb.bad{color:var(--rose);} .fb.soft{color:var(--muted);}
+
+  /* explore */
+  .lab{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:14px;}
+  .lab h3{font-size:16px; margin-bottom:4px;}
+  .lab p{color:var(--muted); font-size:13px; margin:0 0 10px;}
+  .eq-live{font-family:'Space Grotesk'; font-weight:700; font-size:24px; text-align:center; color:#fff; margin:6px 0;}
+  .eq-live .m{color:var(--emerald);} .eq-live .b{color:var(--amber);}
+  .slider{display:flex; align-items:center; gap:12px; margin:12px 0;}
+  .slider label{width:96px; white-space:nowrap; font-size:13px; font-family:'Space Grotesk'; font-weight:700; color:var(--muted);}
+  .slider input[type=range]{flex:1; accent-color:var(--indigo);}
+  .slider .val{width:48px; text-align:right; font-family:'Space Grotesk'; font-weight:700;}
+  canvas{display:block; width:100%; border-radius:12px; background:#0c1526; border:1px solid var(--line);}
+
+  .overlay{position:fixed; inset:0; background:rgba(6,11,22,.7); display:none; align-items:center; justify-content:center; padding:18px; z-index:80;}
+  .overlay.open{display:flex;}
+  .sheet{width:100%; max-width:440px; background:var(--card); border:1px solid var(--line); color:var(--ink); border-radius:18px; padding:20px;}
+  .sheet h2{font-size:20px; margin-bottom:10px;}
+  .statline{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px;}
+  .row{display:flex; gap:10px; margin-top:16px;}
+  .toast{position:fixed; left:50%; bottom:6%; transform:translateX(-50%) translateY(12px); background:#0c1526; border:1px solid var(--line); color:var(--ink); padding:12px 18px; border-radius:12px; font-weight:700; font-family:'Space Grotesk'; opacity:0; transition:all .3s; z-index:60; max-width:88%; text-align:center;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .hidden{display:none !important;}
+  .confetti{position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:50;}
+  .conf{position:absolute; font-size:18px; animation:fall 1.1s ease-out forwards;}
+  @keyframes fall{0%{transform:translateY(0) rotate(0);opacity:1;}100%{transform:translateY(-220px) rotate(200deg);opacity:0;}}
+  .footer{text-align:center; font-size:11px; color:var(--faint); padding-top:10px; flex:0 0 auto;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <button class="iconbtn back hidden" id="backBtn">←</button>
+    <div class="logo" id="logo"><span class="mk">▲</span> Summit <span style="color:var(--muted);font-weight:500">Math 8</span></div>
+    <div class="spacer"></div>
+    <div class="pctchip" id="pctChip">Mastery <b id="pctNum">0%</b></div>
+    <button class="iconbtn" id="gearBtn">⚙️</button>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen on" id="scr-home">
+    <div class="scrolly">
+      <div class="hero">
+        <h2 id="heroTitle">Let's climb Grade 8.</h2>
+        <p id="heroSub">18 skills across 5 standards. Master each with worked steps — no guessing, just understanding.</p>
+        <div class="bar"><i id="heroBar"></i></div>
+        <div class="herorow">
+          <button class="btn primary" id="continueBtn">Continue ▶</button>
+          <button class="btn soft" id="exploreBtn">📈 Graph Lab</button>
+          <button class="btn soft" id="diagBtn">Quick check</button>
+        </div>
+      </div>
+      <div id="domains"></div>
+    </div>
+  </div>
+
+  <!-- PRACTICE -->
+  <div class="screen" id="scr-practice">
+    <div class="pwrap">
+      <div class="phead">
+        <span class="nm" id="pName">Skill</span>
+        <span class="pips" id="pPips"></span>
+      </div>
+      <div class="qcard">
+        <div class="qwhy" id="qWhy"></div>
+        <div class="qtext" id="qText"></div>
+        <div class="qeq mono" id="qEq"></div>
+        <div class="qsvg" id="qSvg"></div>
+        <div id="ansArea"></div>
+        <div class="fb" id="pFb"></div>
+        <div class="steps hidden" id="pSteps"></div>
+      </div>
+      <div class="pbtns">
+        <button class="btn soft" id="stepsBtn">Show steps</button>
+        <button class="btn soft" id="skipBtn">Skip</button>
+        <button class="btn primary" id="checkBtn" style="flex:1;">Check</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPLORE / GRAPH LAB -->
+  <div class="screen" id="scr-explore">
+    <div class="scrolly">
+      <div class="lab">
+        <h3>📈 Linear Graph Lab</h3>
+        <p>Drag the sliders. Watch how slope (m) tilts the line and the intercept (b) slides it up and down. This is <span class="mono">y = mx + b</span>.</p>
+        <div class="eq-live mono" id="eqLive">y = <span class="m">1</span>x + <span class="b">0</span></div>
+        <canvas id="graph" width="640" height="420"></canvas>
+        <div class="slider"><label>slope m</label><input type="range" id="sM" min="-5" max="5" step="0.5" value="1"><span class="val mono" id="vM">1</span></div>
+        <div class="slider"><label>intercept b</label><input type="range" id="sB" min="-8" max="8" step="1" value="0"><span class="val mono" id="vB">0</span></div>
+      </div>
+      <div class="lab">
+        <h3>What to notice</h3>
+        <p>• A bigger <span class="mono">m</span> makes the line steeper. • Negative <span class="mono">m</span> tilts it the other way. • <span class="mono">b</span> is where the line crosses the y-axis (the starting value).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Summit Math 8 · Glory to God alone · AMHG</div>
+</div>
+
+<div class="confetti" id="confetti"></div>
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h2>Your progress</h2>
+    <div id="dashStats"></div>
+    <div class="row">
+      <button class="btn soft" id="resetBtn" style="flex:1; color:var(--rose);">Reset progress</button>
+      <button class="btn primary" id="doneBtn" style="flex:1;">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(id){ return document.getElementById(id); };
+
+  function loadJSON(k,d){ try{ var v=localStorage.getItem(k); return v===null?d:JSON.parse(v); }catch(e){ return d; } }
+  function saveJSON(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  var KEY="summit8_v1";
+  var P=loadJSON(KEY, { sk:{} });
+  function persist(){ saveJSON(KEY,P); }
+
+  function R(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function Rnz(a,b){ var v=R(a,b); return v===0?(b>0?1:-1):v; }
+  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function shuffle(a){ a=a.slice(); var i,j,t; for(i=a.length-1;i>0;i--){ j=Math.floor(Math.random()*(i+1)); t=a[i];a[i]=a[j];a[j]=t; } return a; }
+  function sgn(n){ return n<0?("− "+Math.abs(n)):("+ "+n); }   /* for equations: x + 3 / x − 3 */
+  function cx(n){ return n===1?"x":(n===-1?"−x":n+"x"); }       /* coefficient: 1x -> x */
+  function lin2(a,b,c){ var bb=Math.abs(b); var by=(bb===1?"y":bb+"y"); return cx(a)+(b<0?" − ":" + ")+by+" = "+c; }
+  function mv(n){ return n<0?("Add "+(-n)+" to both sides"):("Subtract "+n+" from both sides"); }
+  var MASTER=4;
+
+  /* ============ GENERATORS (each self-computes the answer) ============ */
+  var TRIPLES=[[3,4,5],[6,8,10],[5,12,13],[8,15,17],[9,12,15],[7,24,25],[20,21,29],[9,40,41],[12,16,20],[10,24,26]];
+
+  function g_rational(){
+    var items=[
+      {t:"√16",k:"Rational"},{t:"0.75",k:"Rational"},{t:"3/4",k:"Rational"},{t:"√25",k:"Rational"},
+      {t:"2.5",k:"Rational"},{t:"0.3333… (repeating)",k:"Rational"},{t:"√100",k:"Rational"},{t:"−7",k:"Rational"},{t:"√81",k:"Rational"},
+      {t:"√2",k:"Irrational"},{t:"√10",k:"Irrational"},{t:"√50",k:"Irrational"},{t:"π",k:"Irrational"},
+      {t:"√7",k:"Irrational"},{t:"√20",k:"Irrational"},{t:"√3",k:"Irrational"}];
+    var it=pick(items);
+    return { why:"Irrational numbers never end or repeat — they appear in circles (π) and right triangles.",
+      text:"Is this number rational or irrational?", eq:it.t, mode:"mc", choices:["Rational","Irrational"], answer:it.k,
+      steps:["A number is <b>rational</b> if it can be written as a fraction — that includes terminating or repeating decimals and roots of <b>perfect squares</b> (√16 = 4).","It is <b>irrational</b> if it never ends or repeats — like π or the root of a non-perfect-square (√2).","So this one is <b>"+it.k+"</b>."] };
+  }
+  function g_estimate(){
+    var n; do{ n=R(2,145); }while(Math.sqrt(n)%1===0);
+    var k=Math.floor(Math.sqrt(n));
+    var ans=k+" and "+(k+1);
+    var ch=shuffle([ans, (k-1)+" and "+k, (k+1)+" and "+(k+2), (k+2)+" and "+(k+3)]);
+    return { why:"Estimating roots puts irrational numbers on the number line.",
+      text:"√"+n+" is between which two whole numbers?", eq:"", mode:"mc", choices:ch, answer:ans,
+      steps:[""+k+"² = "+(k*k)+" and "+(k+1)+"² = "+((k+1)*(k+1))+".", n+" is between "+(k*k)+" and "+((k+1)*(k+1))+", so √"+n+" is between <b>"+k+" and "+(k+1)+"</b>."] };
+  }
+  function g_expLaws(){
+    var b=R(2,6), m=R(2,6), n=R(2,5), type=R(0,2), ans, eq, rule;
+    if(type===0){ ans=m+n; eq=b+"^"+m+" · "+b+"^"+n+"  =  "+b+"^?"; rule="When you multiply powers with the same base, <b>add</b> the exponents: "+m+" + "+n+" = "+ans+"."; }
+    else if(type===1){ ans=m*n; eq="("+b+"^"+m+")^"+n+"  =  "+b+"^?"; rule="A power of a power <b>multiplies</b> the exponents: "+m+" × "+n+" = "+ans+"."; }
+    else { if(m<=n){ var t=m; m=n+R(1,3); } ans=m-n; eq=b+"^"+m+" ÷ "+b+"^"+n+"  =  "+b+"^?"; rule="Dividing powers with the same base <b>subtracts</b> the exponents: "+m+" − "+n+" = "+ans+"."; }
+    return { why:"Exponent rules keep very large and very small numbers manageable.",
+      text:"Simplify and give the new exponent:", eq:eq, mode:"num", answer:ans, tol:0, steps:[rule] };
+  }
+  function g_eval(){
+    var sets=[[2,2],[2,3],[2,4],[2,5],[2,6],[3,2],[3,3],[3,4],[4,2],[4,3],[5,2],[5,3],[10,2],[10,3],[6,2],[7,2]];
+    var s=pick(sets); var ans=Math.pow(s[0],s[1]);
+    return { why:"Powers are repeated multiplication.", text:"Evaluate:", eq:s[0]+"^"+s[1], mode:"num", answer:ans, tol:0,
+      steps:[s[0]+"^"+s[1]+" means "+s[0]+" multiplied "+s[1]+" times.", "= <b>"+ans+"</b>."] };
+  }
+  function g_sci(){
+    if(R(0,1)){
+      var vals=[4500,32000,670000,89000,1200000,540,7800,56000,910000];
+      var N=pick(vals); var k=Math.floor(Math.log(N)/Math.LN10 + 1e-9); var c=N/Math.pow(10,k);
+      return { why:"Scientists write huge/tiny numbers compactly.", text:"Write "+N.toLocaleString()+" in scientific notation. It is "+ (c%1===0?c.toFixed(1):(""+c)) +" × 10^k.  What is k?",
+        eq:"", mode:"num", answer:k, tol:0, steps:["Move the decimal so one non-zero digit is in front: "+(""+c)+".","You moved it "+k+" places, so the exponent is <b>"+k+"</b>."] };
+    } else {
+      var c2=(R(10,99)/10); var k2=R(2,6); var ans=Math.round(c2*Math.pow(10,k2));
+      return { why:"Converting out of scientific notation.", text:"Write this as an ordinary number:", eq:c2+" × 10^"+k2, mode:"num", answer:ans, tol:0,
+        steps:["Multiply "+c2+" by 10 "+k2+" times (move the decimal "+k2+" places right).","= <b>"+ans.toLocaleString()+"</b>."] };
+    }
+  }
+  function g_twoStep(){
+    var a=R(2,6), x=R(-6,9), b=Rnz(-9,9); var c=a*x+b;
+    return { why:"Solving equations is the heart of algebra.", text:"Solve for x:", eq:a+"x "+sgn(b)+" = "+c, mode:"num", answer:x, tol:0,
+      steps:[mv(b)+": "+a+"x = "+(c-b)+".","Divide both sides by "+a+": x = <b>"+x+"</b>."] };
+  }
+  function g_bothSides(){
+    var a=R(3,7), c=R(1,a-1);
+    var x=R(-5,8), b=Rnz(-9,9); var d=(a-c)*x+b;
+    return { why:"Collect variables on one side, numbers on the other.", text:"Solve for x:", eq:a+"x "+sgn(b)+" = "+cx(c)+" "+sgn(d), mode:"num", answer:x, tol:0,
+      steps:["Subtract "+cx(c)+" from both sides: "+cx(a-c)+" "+sgn(b)+" = "+d+".",mv(b)+": "+cx(a-c)+" = "+(d-b)+".","Divide by "+(a-c)+": x = <b>"+x+"</b>."] };
+  }
+  function g_slope(){
+    var x1=R(-5,5), x2; do{ x2=R(-5,6); }while(x2===x1);
+    var m=Rnz(-4,4), b=R(-4,4); var y1=m*x1+b, y2=m*x2+b;
+    return { why:"Slope is rate of change — how fast y moves as x moves.", text:"Find the slope of the line through these points:", eq:"("+x1+", "+y1+")  and  ("+x2+", "+y2+")", mode:"num", answer:m, tol:0,
+      steps:["Slope = (y₂ − y₁) / (x₂ − x₁).","= ("+y2+" − "+y1+") / ("+x2+" − "+x1+") = "+(y2-y1)+"/"+(x2-x1)+" = <b>"+m+"</b>."] };
+  }
+  function g_lineY(){
+    var m=Rnz(-5,5), b=Rnz(-7,7), x=R(-5,6); var y=m*x+b;
+    return { why:"Plugging a value into a line gives a point on it.", text:"For the line below, find y when x = "+x+":", eq:"y = "+m+"x "+sgn(b), mode:"num", answer:y, tol:0,
+      steps:["Substitute x = "+x+": y = "+m+"("+x+") "+sgn(b)+".","= "+(m*x)+" "+sgn(b)+" = <b>"+y+"</b>."] };
+  }
+  function g_system(){
+    var x=R(-4,5), y=R(-4,5);
+    var a1=Rnz(-3,3), b1=Rnz(-3,3), a2=Rnz(-3,3), b2=Rnz(-3,3);
+    while(a1*b2-a2*b1===0){ a2=Rnz(-3,3); b2=Rnz(-3,3); }
+    var c1=a1*x+b1*y, c2=a2*x+b2*y;
+    return { why:"Two lines meet at one point — the solution to the system.", text:"Solve the system. What is x?",
+      eq:lin2(a1,b1,c1)+"\n"+lin2(a2,b2,c2), mode:"num", answer:x, tol:0,
+      steps:["Eliminate y: multiply the first equation by "+b2+" and the second by "+b1+", then subtract.",
+        "That leaves ("+(a1*b2-a2*b1)+")x = "+(c1*b2-c2*b1)+", so x = <b>"+x+"</b>.",
+        "Substitute x back into either equation to get y = "+y+"."] };
+  }
+  function g_fEval(){
+    if(R(0,1)){ var a=Rnz(-4,5), b=Rnz(-6,6), x=R(-5,6); var y=a*x+b;
+      return { why:"f(x) is a rule: put x in, get a number out.", text:"Given f(x) = "+a+"x "+sgn(b)+", find f("+x+").", eq:"", mode:"num", answer:y, tol:0,
+        steps:["f("+x+") = "+a+"("+x+") "+sgn(b)+" = "+(a*x)+" "+sgn(b)+" = <b>"+y+"</b>."] };
+    } else { var a2=R(1,3), c=Rnz(-5,5), x2=R(-4,4); var y2=a2*x2*x2+c;
+      return { why:"Non-linear functions grow differently.", text:"Given f(x) = "+a2+"x² "+sgn(c)+", find f("+x2+").", eq:"", mode:"num", answer:y2, tol:0,
+        steps:["f("+x2+") = "+a2+"("+x2+")² "+sgn(c)+" = "+a2+"("+(x2*x2)+") "+sgn(c)+" = <b>"+y2+"</b>."] };
+    }
+  }
+  function g_rate(){
+    var m=R(2,9), b=R(3,40), x=R(2,12);
+    var ctx=pick([{s:"A plant is "+b+" cm tall and grows "+m+" cm each week",u:"weeks",o:"tall"},
+      {s:"A tank holds "+b+" litres and fills "+m+" litres per minute",u:"minutes",o:"in the tank"},
+      {s:"You have $"+b+" saved and add $"+m+" each week",u:"weeks",o:"saved"}]);
+    var val=m*x+b;
+    return { why:"Linear models: a starting value plus a steady rate.", text:ctx.s+". How much "+ctx.o+" after "+x+" "+ctx.u+"?", eq:"", mode:"num", answer:val, tol:0,
+      steps:["Value = start + rate × time = "+b+" + "+m+"×"+x+".","= "+b+" + "+(m*x)+" = <b>"+val+"</b>."] };
+  }
+  function g_angles(){
+    var type=R(0,2);
+    if(type===0){ var known=R(20,160); var x=180-known;
+      return { why:"Angles on a straight line add to 180°.", text:"Two angles are supplementary (add to 180°). One is "+known+"°. Find x.", eq:"", mode:"num", answer:x, tol:0, steps:["x = 180 − "+known+" = <b>"+x+"°</b>."] };
+    } else if(type===1){ var k=R(10,80); var x2=90-k;
+      return { why:"Complementary angles add to 90°.", text:"Two angles are complementary (add to 90°). One is "+k+"°. Find x.", eq:"", mode:"num", answer:x2, tol:0, steps:["x = 90 − "+k+" = <b>"+x2+"°</b>."] };
+    } else { var a=R(30,90), b=R(30,90); while(a+b>=175){ b=R(20,70); } var x3=180-a-b;
+      return { why:"The angles in a triangle add to 180°.", text:"A triangle has angles "+a+"° and "+b+"°. Find the third angle x.", eq:"", mode:"num", answer:x3, tol:0, steps:["x = 180 − "+a+" − "+b+" = <b>"+x3+"°</b>."] };
+    }
+  }
+  function g_pythag(){
+    var t=pick(TRIPLES); var a=t[0],b=t[1],c=t[2];
+    var findHyp=R(0,1);
+    var svg='<svg width="180" height="140" viewBox="0 0 180 140" xmlns="http://www.w3.org/2000/svg">'+
+      '<polygon points="30,120 150,120 30,30" fill="rgba(129,140,248,.12)" stroke="#818cf8" stroke-width="2.5"/>'+
+      '<rect x="30" y="108" width="12" height="12" fill="none" stroke="#818cf8" stroke-width="2"/>'+
+      '<text x="86" y="135" fill="#9aabcf" font-size="13" text-anchor="middle">'+(findHyp?a:a)+'</text>'+
+      '<text x="12" y="78" fill="#9aabcf" font-size="13">'+(findHyp?b:b)+'</text>'+
+      '<text x="104" y="66" fill="#34d399" font-size="13" transform="rotate(-38 104 66)">'+(findHyp?"?":c)+'</text></svg>';
+    if(findHyp){
+      return { why:"The Pythagorean theorem links the sides of every right triangle.", text:"Find the hypotenuse (the longest side).", eq:"", svg:svg, mode:"num", answer:c, tol:0,
+        steps:["a² + b² = c²","= "+a+"² + "+b+"² = "+(a*a)+" + "+(b*b)+" = "+(a*a+b*b)+".","c = √"+(a*a+b*b)+" = <b>"+c+"</b>."] };
+    } else {
+      var svg2='<svg width="180" height="140" viewBox="0 0 180 140" xmlns="http://www.w3.org/2000/svg">'+
+        '<polygon points="30,120 150,120 30,30" fill="rgba(129,140,248,.12)" stroke="#818cf8" stroke-width="2.5"/>'+
+        '<rect x="30" y="108" width="12" height="12" fill="none" stroke="#818cf8" stroke-width="2"/>'+
+        '<text x="86" y="135" fill="#9aabcf" font-size="13" text-anchor="middle">'+a+'</text>'+
+        '<text x="12" y="78" fill="#34d399" font-size="13">?</text>'+
+        '<text x="104" y="66" fill="#9aabcf" font-size="13" transform="rotate(-38 104 66)">'+c+'</text></svg>';
+      return { why:"Rearrange the theorem to find a missing leg.", text:"Find the missing leg.", eq:"", svg:svg2, mode:"num", answer:b, tol:0,
+        steps:["a² + b² = c²  →  b² = c² − a²","= "+c+"² − "+a+"² = "+(c*c)+" − "+(a*a)+" = "+(c*c-a*a)+".","b = √"+(c*c-a*a)+" = <b>"+b+"</b>."] };
+    }
+  }
+  function g_distance(){
+    var t=pick(TRIPLES); var dx=t[0]*(R(0,1)?1:-1), dy=t[1]*(R(0,1)?1:-1);
+    var x1=R(-5,5), y1=R(-5,5); var x2=x1+dx, y2=y1+dy; var d=t[2];
+    return { why:"Distance on a grid is the Pythagorean theorem in disguise.", text:"Find the distance between the points:", eq:"("+x1+", "+y1+")  and  ("+x2+", "+y2+")", mode:"num", answer:d, tol:0,
+      steps:["d = √[(x₂−x₁)² + (y₂−y₁)²]","= √["+dx+"² + "+dy+"²] = √["+(dx*dx)+" + "+(dy*dy)+"] = √"+(dx*dx+dy*dy)+" = <b>"+d+"</b>."] };
+  }
+  function g_volume(){
+    var type=R(0,2), r=R(2,7), h=R(3,10), PI=3.14, ans, eq, form, text;
+    if(type===0){ ans=PI*r*r*h; form="V = πr²h = 3.14 × "+r+"² × "+h; text="Find the volume of a cylinder with radius "+r+" and height "+h+". (Use π ≈ 3.14, round to the nearest whole number.)"; }
+    else if(type===1){ ans=PI*r*r*h/3; form="V = ⅓πr²h = (3.14 × "+r+"² × "+h+") ÷ 3"; text="Find the volume of a cone with radius "+r+" and height "+h+". (Use π ≈ 3.14, round to the nearest whole number.)"; }
+    else { ans=4/3*PI*r*r*r; form="V = 4⁄3 πr³ = (4 × 3.14 × "+r+"³) ÷ 3"; text="Find the volume of a sphere with radius "+r+". (Use π ≈ 3.14, round to the nearest whole number.)"; }
+    var rnd=Math.round(ans);
+    return { why:"Volume formulas measure 3-D space — tanks, balls, cups.", text:text, eq:"", mode:"num", answer:rnd, tol:2,
+      steps:[form+".","≈ <b>"+rnd+"</b> cubic units."] };
+  }
+  function g_scatter(){
+    var kind=pick(["positive","negative","no"]);
+    var pts="", i, n=9;
+    for(i=0;i<n;i++){ var x=20+i*24+R(-6,6); var base; if(kind==="positive") base=180-i*16; else if(kind==="negative") base=30+i*16; else base=R(40,170);
+      var y=base+R(-14,14); pts+='<circle cx="'+x+'" cy="'+Math.max(14,Math.min(196,y))+'" r="5" fill="#34d399"/>'; }
+    var svg='<svg width="240" height="210" viewBox="0 0 240 210" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="238" height="208" rx="10" fill="#0c1526" stroke="#26365c"/><line x1="20" y1="196" x2="230" y2="196" stroke="#26365c"/><line x1="20" y1="14" x2="20" y2="196" stroke="#26365c"/>'+pts+'</svg>';
+    var ans = kind==="positive"?"Positive":(kind==="negative"?"Negative":"No association");
+    return { why:"Scatter plots show whether two things move together.", text:"What association does this scatter plot show?", eq:"", svg:svg, mode:"mc", choices:["Positive","Negative","No association"], answer:ans,
+      steps:[kind==="positive"?"As x increases, y tends to <b>increase</b> → <b>positive</b> association.":(kind==="negative"?"As x increases, y tends to <b>decrease</b> → <b>negative</b> association.":"The points show no clear trend → <b>no association</b>.")] };
+  }
+
+  function g_transform(){
+    var items=[
+      {q:"A triangle is slid 4 units to the right without turning or flipping. This transformation is a —", a:"translation", choices:["translation","rotation","reflection","dilation"], exp:"Sliding a figure without turning or resizing is a <b>translation</b>; the image stays congruent."},
+      {q:"A figure is flipped across a line to make a mirror image. This is a —", a:"reflection", choices:["reflection","translation","rotation","dilation"], exp:"A mirror-image flip over a line is a <b>reflection</b>; the image is congruent."},
+      {q:"A shape is turned 90° about a point. This is a —", a:"rotation", choices:["rotation","reflection","translation","dilation"], exp:"Turning a figure about a point is a <b>rotation</b>; size and shape are unchanged."},
+      {q:"A figure is enlarged to twice its size from a center point. This is a —", a:"dilation", choices:["dilation","translation","rotation","reflection"], exp:"Resizing by a scale factor from a center is a <b>dilation</b>; the image is SIMILAR, not congruent."},
+      {q:"After a translation, rotation, or reflection, the image is —", a:"congruent (same size and shape)", choices:["congruent (same size and shape)","similar but a different size","always larger","a different shape"], exp:"Translations, rotations, and reflections are rigid motions — they preserve size and shape, so the image is <b>congruent</b>."},
+      {q:"After a dilation with scale factor 3, the new figure is —", a:"similar (same shape, 3× the size)", choices:["similar (same shape, 3× the size)","congruent to the original","smaller than the original","a different shape"], exp:"A dilation changes size but not shape, so the image is <b>similar</b>; factor 3 makes it 3× larger."}
+    ];
+    var it=pick(items);
+    return { why:"Transformations move or resize figures — the basis of congruence and similarity.", text:it.q, eq:"", mode:"mc", choices:it.choices, answer:it.a, steps:[it.exp] };
+  }
+
+  /* ============ SKILL LADDER ============ */
+  var DOMAINS=[
+    {dom:"Number System", std:"8.NS", skills:[
+      {id:"rational", name:"Rational vs irrational", gen:g_rational},
+      {id:"estimate", name:"Estimate square roots", gen:g_estimate}]},
+    {dom:"Expressions & Equations", std:"8.EE", skills:[
+      {id:"eval", name:"Evaluate powers", gen:g_eval},
+      {id:"explaws", name:"Exponent rules", gen:g_expLaws},
+      {id:"sci", name:"Scientific notation", gen:g_sci},
+      {id:"twostep", name:"Two-step equations", gen:g_twoStep},
+      {id:"bothsides", name:"Variables on both sides", gen:g_bothSides},
+      {id:"slope", name:"Slope from two points", gen:g_slope},
+      {id:"liney", name:"Use y = mx + b", gen:g_lineY},
+      {id:"system", name:"Systems of equations", gen:g_system}]},
+    {dom:"Functions", std:"8.F", skills:[
+      {id:"feval", name:"Evaluate functions", gen:g_fEval},
+      {id:"rate", name:"Rate of change & initial value", gen:g_rate}]},
+    {dom:"Geometry", std:"8.G", skills:[
+      {id:"transform", name:"Transformations & similarity", gen:g_transform},
+      {id:"angles", name:"Angle relationships", gen:g_angles},
+      {id:"pythag", name:"Pythagorean theorem", gen:g_pythag},
+      {id:"distance", name:"Distance between points", gen:g_distance},
+      {id:"volume", name:"Volume (cylinder/cone/sphere)", gen:g_volume}]},
+    {dom:"Statistics", std:"8.SP", skills:[
+      {id:"scatter", name:"Scatter plots", gen:g_scatter}]}
+  ];
+  var ALL=[]; for(var di=0;di<DOMAINS.length;di++){ for(var si=0;si<DOMAINS[di].skills.length;si++){ ALL.push(DOMAINS[di].skills[si]); } }
+  function skById(id){ for(var i=0;i<ALL.length;i++){ if(ALL[i].id===id) return ALL[i]; } return null; }
+  function stOf(id){ if(!P.sk[id]) P.sk[id]={st:"open",streak:0,reps:0,rev:0}; return P.sk[id]; }
+  function masteredCount(){ var n=0; for(var i=0;i<ALL.length;i++){ var s=P.sk[ALL[i].id]; if(s&&s.st==="mastered") n++; } return n; }
+  function pct(){ return Math.round(masteredCount()/ALL.length*100); }
+  function firstUnmastered(){ for(var i=0;i<ALL.length;i++){ var s=P.sk[ALL[i].id]; if(!s||s.st!=="mastered") return ALL[i].id; } return ALL[0].id; }
+  function dueReview(){ var now=Date.now(); for(var i=0;i<ALL.length;i++){ var s=P.sk[ALL[i].id]; if(s&&s.st==="mastered"&&s.rev&&s.rev<=now) return ALL[i].id; } return null; }
+
+  /* ============ ROUTER ============ */
+  var stack=["home"];
+  function cur(){ return stack[stack.length-1]; }
+  var SCREENS=["home","practice","explore"];
+  function render(){
+    var name=cur();
+    for(var i=0;i<SCREENS.length;i++){ $("scr-"+SCREENS[i]).classList.toggle("on", SCREENS[i]===name); }
+    $("backBtn").classList.toggle("hidden", stack.length<=1);
+    $("pctNum").textContent=pct()+"%";
+    if(name==="home") paintHome();
+    if(name==="explore") drawGraph();
+  }
+  function go(n){ stack.push(n); render(); }
+  function back(){ if(stack.length>1){ stack.pop(); render(); } }
+  $("backBtn").addEventListener("click", back);
+
+  function paintHome(){
+    $("heroBar").style.width=pct()+"%";
+    var done=masteredCount();
+    $("heroTitle").textContent = done===0 ? "Let's climb Grade 8." : (done===ALL.length? "Summit reached. 🏔️" : "Keep climbing.");
+    $("heroSub").textContent = done===0 ? "18 skills across 5 standards. Master each with worked steps — no guessing, just understanding."
+      : (done+" of "+ALL.length+" skills mastered. Mastery = 4 correct in a row.");
+    var rev=dueReview();
+    $("continueBtn").textContent = rev ? "Review ▶" : "Continue ▶";
+    var h="";
+    for(var d=0; d<DOMAINS.length; d++){ var dm=DOMAINS[d];
+      h+='<div class="domain"><h3>'+dm.dom+' <span class="std">'+dm.std+'</span></h3>';
+      for(var s=0;s<dm.skills.length;s++){ var sk=dm.skills[s]; var st=P.sk[sk.id]||{st:"open",streak:0};
+        var dots=""; for(var k=0;k<MASTER;k++){ dots+='<span class="dot'+(st.st==="mastered"||k<st.streak?" on":"")+'"></span>'; }
+        var cls=st.st==="mastered"?"done":""; var isrev=st.st==="mastered"&&st.rev&&st.rev<=Date.now(); if(isrev) cls="review";
+        var tag=st.st==="mastered"?'<span class="tag'+(isrev?" rev":"")+'">'+(isrev?"review":"✓")+'</span>':'<span class="meter">'+dots+'</span>';
+        h+='<button class="skill '+cls+'" data-sk="'+sk.id+'"><span class="nm">'+sk.name+'</span>'+tag+'</button>';
+      }
+      h+='</div>';
+    }
+    $("domains").innerHTML=h;
+    var bs=$("domains").querySelectorAll("[data-sk]");
+    for(var b=0;b<bs.length;b++){ (function(el){ el.addEventListener("click", function(){ startPractice(el.getAttribute("data-sk")); }); })(bs[b]); }
+  }
+  $("continueBtn").addEventListener("click", function(){ var r=dueReview(); startPractice(r||firstUnmastered()); });
+  $("exploreBtn").addEventListener("click", function(){ go("explore"); });
+  $("diagBtn").addEventListener("click", function(){ startPractice(firstUnmastered()); });
+  $("logo").addEventListener("click", function(){ stack=["home"]; render(); });
+
+  /* ============ PRACTICE ============ */
+  var curId=null, Q=null, tries=0, answered=false;
+  function startPractice(id){ curId=id; stack=["home","practice"]; render(); nextQ(); }
+  function renderPips(){ var s=stOf(curId); var h=""; for(var i=0;i<MASTER;i++){ h+='<span class="pip'+(i<(s.streak||0)?" on":"")+'"></span>'; } $("pPips").innerHTML=h; }
+  function nextQ(){
+    var sk=skById(curId); if(!sk){ back(); return; }
+    Q=sk.gen(); tries=0; answered=false;
+    $("pName").textContent=sk.name;
+    $("qWhy").textContent=Q.why||"";
+    $("qText").innerHTML=Q.text||"";
+    $("qEq").textContent=Q.eq||""; $("qEq").style.display=Q.eq?"block":"none";
+    $("qSvg").innerHTML=Q.svg||"";
+    $("pSteps").classList.add("hidden"); $("pSteps").innerHTML="";
+    $("pFb").textContent=""; $("pFb").className="fb";
+    $("checkBtn").classList.remove("hidden");
+    renderPips();
+    renderAnswer();
+  }
+  function renderAnswer(){
+    var area=$("ansArea");
+    if(Q.mode==="mc"){
+      $("checkBtn").classList.add("hidden"); $("skipBtn").style.flex="1";
+      var h='<div class="choices" id="choices"></div>'; area.innerHTML=h;
+      var grid=$("choices"); var ch=shuffle(Q.choices);
+      for(var i=0;i<ch.length;i++){ (function(val){ var b=document.createElement("button"); b.className="choice"; b.textContent=val;
+        b.addEventListener("click", function(){ if(answered) return; judge(val, b); }); grid.appendChild(b); })(ch[i]); }
+    } else {
+      $("checkBtn").classList.remove("hidden"); $("skipBtn").style.flex="";
+      area.innerHTML='<div class="ansrow"><button type="button" class="btn soft" id="negBtn" style="flex:0 0 auto;width:54px;font-size:22px;">±</button><input class="ans mono" id="ansInput" inputmode="decimal" enterkeyhint="go" autocomplete="off" placeholder="your answer"></div>';
+      var inp=$("ansInput"); inp.addEventListener("keydown", function(e){ if(e.key==="Enter") doCheck(); });
+      $("negBtn").addEventListener("click", function(){ var v=inp.value.trim(); inp.value=(v.charAt(0)==="-")?v.slice(1):("-"+v); inp.focus(); });
+      setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 60);
+    }
+  }
+  function numeric(v){ v=(""+v).replace(/[−–—]/g,"-").replace(/[^0-9.\-]/g,""); return parseFloat(v); }
+  function doCheck(){
+    if(answered) return;
+    var inp=$("ansInput"); if(!inp) return;
+    var u=numeric(inp.value); if(isNaN(u)){ $("pFb").className="fb soft"; $("pFb").textContent="Type a number first."; return; }
+    var ok=Math.abs(u-Q.answer) <= (Q.tol||0);
+    if(ok){ inp.classList.add("good"); win(); }
+    else { inp.classList.add("bad"); miss(); setTimeout(function(){ inp.classList.remove("bad"); }, 500); }
+  }
+  function judge(val, btn){
+    if(String(val)===String(Q.answer)){ btn.classList.add("good"); win(); }
+    else { btn.classList.add("bad"); miss(); }
+  }
+  $("checkBtn").addEventListener("click", doCheck);
+  function win(){
+    answered=true;
+    var s=stOf(curId); s.reps=(s.reps||0)+1; s.streak=(s.streak||0)+1; if(s.st!=="mastered") s.st="learning";
+    $("pFb").className="fb good"; $("pFb").textContent=pick(["Correct ✓","Nailed it ✓","Yes ✓","Exactly ✓"]);
+    renderPips();
+    if(s.streak>=MASTER && s.st!=="mastered"){ s.st="mastered"; s.rev=Date.now()+3*864e5; persist(); masterSkill(); return; }
+    if(s.st==="mastered"){ s.rev=Date.now()+7*864e5; } // reviewed again → push further out
+    persist();
+    setTimeout(nextQ, 850);
+  }
+  function miss(){
+    tries++;
+    var s=stOf(curId); if(s.streak>0){ s.streak=0; renderPips(); } persist();
+    if(tries===1){ $("pFb").className="fb bad"; $("pFb").textContent="Not quite — try once more."; }
+    else { showSteps(true); }
+  }
+  function showSteps(revealAnswer){
+    var h='<div class="st">Worked solution</div><ol>'; for(var i=0;i<Q.steps.length;i++){ if(Q.steps[i]) h+='<li>'+Q.steps[i]+'</li>'; } h+='</ol>';
+    $("pSteps").innerHTML=h; $("pSteps").classList.remove("hidden");
+    if(revealAnswer){ answered=true; $("pFb").className="fb soft"; $("pFb").textContent="The answer is "+Q.answer+".";
+      if(Q.mode==="mc"){ var cs=$("choices").querySelectorAll(".choice"); for(var c=0;c<cs.length;c++){ if(cs[c].textContent===String(Q.answer)) cs[c].classList.add("good"); } }
+      try{ $("pSteps").scrollIntoView({block:"center"}); }catch(e){}
+      setTimeout(nextQ, 2600);
+    }
+  }
+  function masterSkill(){
+    var sk=skById(curId);
+    $("pFb").className="fb good"; $("pFb").textContent="🏔️ "+sk.name+" — mastered!";
+    confetti(16); toast("Mastered: "+sk.name);
+    setTimeout(function(){ var nx=firstUnmastered(); if(nx && nx!==curId && masteredCount()<ALL.length){ curId=nx; nextQ(); } else { stack=["home"]; render(); } }, 1200);
+  }
+  $("stepsBtn").addEventListener("click", function(){ showSteps(false); });
+  $("skipBtn").addEventListener("click", function(){ nextQ(); });
+
+  /* ============ GRAPH LAB ============ */
+  function drawGraph(){
+    var cv=$("graph"); if(!cv) return; var ctx=cv.getContext("2d");
+    var W=cv.width, H=cv.height, u=W/16; // 16 units wide, origin center
+    var m=parseFloat($("sM").value), b=parseFloat($("sB").value);
+    ctx.clearRect(0,0,W,H);
+    // grid
+    ctx.strokeStyle="#1b2744"; ctx.lineWidth=1;
+    for(var gx=-8; gx<=8; gx++){ ctx.beginPath(); ctx.moveTo(W/2+gx*u,0); ctx.lineTo(W/2+gx*u,H); ctx.stroke(); }
+    var uy=H/ (H/u); var rows=Math.round(H/u);
+    for(var gy=-rows; gy<=rows; gy++){ ctx.beginPath(); ctx.moveTo(0,H/2+gy*u); ctx.lineTo(W,H/2+gy*u); ctx.stroke(); }
+    // axes
+    ctx.strokeStyle="#3a4d78"; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke();
+    // line y=mx+b
+    function px(x){ return W/2 + x*u; }
+    function py(y){ return H/2 - y*u; }
+    ctx.strokeStyle="#818cf8"; ctx.lineWidth=3.5; ctx.beginPath();
+    ctx.moveTo(px(-8), py(m*-8+b)); ctx.lineTo(px(8), py(m*8+b)); ctx.stroke();
+    // intercept dot
+    ctx.fillStyle="#fbbf24"; ctx.beginPath(); ctx.arc(px(0),py(b),6,0,2*Math.PI); ctx.fill();
+    $("eqLive").innerHTML='y = <span class="m">'+m+'</span>x '+(b<0?"− "+Math.abs(b):"+ "+b);
+    $("vM").textContent=m; $("vB").textContent=b;
+  }
+  $("sM").addEventListener("input", drawGraph);
+  $("sB").addEventListener("input", drawGraph);
+
+  /* ============ misc ============ */
+  function confetti(n){ var box=$("confetti"); var e=["▲","●","✦","■"]; var col=["#818cf8","#34d399","#fbbf24","#38bdf8"];
+    for(var i=0;i<n;i++){ var c=document.createElement("span"); c.className="conf"; c.textContent=pick(e); c.style.color=pick(col);
+      c.style.left=(10+Math.random()*80)+"%"; c.style.bottom=(20+Math.random()*30)+"%"; c.style.animationDelay=(Math.random()*.15)+"s";
+      box.appendChild(c); (function(x){ setTimeout(function(){ if(x.parentNode) x.parentNode.removeChild(x); },1200); })(c); } }
+  var toastT=null; function toast(t){ var el=$("toast"); el.textContent=t; el.classList.add("show"); if(toastT) clearTimeout(toastT); toastT=setTimeout(function(){ el.classList.remove("show"); },1800); }
+
+  $("gearBtn").addEventListener("click", function(){ renderDash(); $("overlay").classList.add("open"); });
+  $("doneBtn").addEventListener("click", function(){ $("overlay").classList.remove("open"); });
+  $("overlay").addEventListener("click", function(e){ if(e.target===$("overlay")) $("overlay").classList.remove("open"); });
+  function renderDash(){
+    var h='<div class="statline"><span>Skills mastered</span><b>'+masteredCount()+' / '+ALL.length+'</b></div>';
+    h+='<div class="statline"><span>Overall mastery</span><b>'+pct()+'%</b></div>';
+    var totalReps=0; for(var k in P.sk){ if(P.sk.hasOwnProperty(k)) totalReps+=(P.sk[k].reps||0); }
+    h+='<div class="statline"><span>Questions answered</span><b>'+totalReps+'</b></div>';
+    h+='<div class="statline"><span>Working on</span><b>'+(skById(firstUnmastered())||{}).name+'</b></div>';
+    $("dashStats").innerHTML=h;
+  }
+  $("resetBtn").addEventListener("click", function(){ if(window.confirm("Reset all progress?")){ P={sk:{}}; persist(); renderDash(); render(); } });
+
+  render();
+  if("serviceWorker" in navigator){ window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); }); }
+})();
+</script>
+</body>
+</html>

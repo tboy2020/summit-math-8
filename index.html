@@ -294,14 +294,14 @@
   function g_bothSides(){
     var a=R(3,7), c=R(1,a-1);
     var x=R(-5,8), b=Rnz(-9,9); var d=(a-c)*x+b;
-    return { why:"Collect variables on one side, numbers on the other.", text:"Solve for x:", eq:a+"x "+sgn(b)+" = "+cx(c)+" "+sgn(d), mode:"num", answer:x, tol:0,
+    return { why:"Collect variables on one side, numbers on the other.", text:"Solve for x:", eq:a+"x "+sgn(b)+" = "+cx(c)+(d===0?"":" "+sgn(d)), mode:"num", answer:x, tol:0,
       steps:["Subtract "+cx(c)+" from both sides: "+cx(a-c)+" "+sgn(b)+" = "+d+".",mv(b)+": "+cx(a-c)+" = "+(d-b)+".","Divide by "+(a-c)+": x = <b>"+x+"</b>."] };
   }
   function g_slope(){
     var x1=R(-5,5), x2; do{ x2=R(-5,6); }while(x2===x1);
     var m=Rnz(-4,4), b=R(-4,4); var y1=m*x1+b, y2=m*x2+b;
     return { why:"Slope is rate of change — how fast y moves as x moves.", text:"Find the slope of the line through these points:", eq:"("+x1+", "+y1+")  and  ("+x2+", "+y2+")", mode:"num", answer:m, tol:0,
-      steps:["Slope = (y₂ − y₁) / (x₂ − x₁).","= ("+y2+" − "+y1+") / ("+x2+" − "+x1+") = "+(y2-y1)+"/"+(x2-x1)+" = <b>"+m+"</b>."] };
+      steps:["Slope = (y₂ − y₁) / (x₂ − x₁).","= ("+y2+" − ("+y1+")) / ("+x2+" − ("+x1+")) = "+(y2-y1)+"/"+(x2-x1)+" = <b>"+m+"</b>."] };
   }
   function g_lineY(){
     var m=Rnz(-5,5), b=Rnz(-7,7), x=R(-5,6); var y=m*x+b;
@@ -331,7 +331,7 @@
   function g_rate(){
     var m=R(2,9), b=R(3,40), x=R(2,12);
     var ctx=pick([{s:"A plant is "+b+" cm tall and grows "+m+" cm each week",u:"weeks",o:"tall"},
-      {s:"A tank holds "+b+" litres and fills "+m+" litres per minute",u:"minutes",o:"in the tank"},
+      {s:"A tank already contains "+b+" litres and fills "+m+" litres per minute",u:"minutes",o:"in the tank"},
       {s:"You have $"+b+" saved and add $"+m+" each week",u:"weeks",o:"saved"}]);
     var val=m*x+b;
     return { why:"Linear models: a starting value plus a steady rate.", text:ctx.s+". How much "+ctx.o+" after "+x+" "+ctx.u+"?", eq:"", mode:"num", answer:val, tol:0,
@@ -374,7 +374,7 @@
     var t=pick(TRIPLES); var dx=t[0]*(R(0,1)?1:-1), dy=t[1]*(R(0,1)?1:-1);
     var x1=R(-5,5), y1=R(-5,5); var x2=x1+dx, y2=y1+dy; var d=t[2];
     return { why:"Distance on a grid is the Pythagorean theorem in disguise.", text:"Find the distance between the points:", eq:"("+x1+", "+y1+")  and  ("+x2+", "+y2+")", mode:"num", answer:d, tol:0,
-      steps:["d = √[(x₂−x₁)² + (y₂−y₁)²]","= √["+dx+"² + "+dy+"²] = √["+(dx*dx)+" + "+(dy*dy)+"] = √"+(dx*dx+dy*dy)+" = <b>"+d+"</b>."] };
+      steps:["d = √[(x₂−x₁)² + (y₂−y₁)²]","= √[("+dx+")² + ("+dy+")²] = √["+(dx*dx)+" + "+(dy*dy)+"] = √"+(dx*dx+dy*dy)+" = <b>"+d+"</b>."] };
   }
   function g_volume(){
     var type=R(0,2), r=R(2,7), h=R(3,10), PI=3.14, ans, eq, form, text;
@@ -572,12 +572,12 @@
   /* ============ GRAPH LAB ============ */
   function drawGraph(){
     var cv=$("graph"); if(!cv) return; var ctx=cv.getContext("2d");
-    var W=cv.width, H=cv.height, u=W/16; // 16 units wide, origin center
+    var W=cv.width, H=cv.height, u=H/16, xh=(W/2)/u; // square units; xh = visible x half-range
     var m=parseFloat($("sM").value), b=parseFloat($("sB").value);
     ctx.clearRect(0,0,W,H);
     // grid
     ctx.strokeStyle="#1b2744"; ctx.lineWidth=1;
-    for(var gx=-8; gx<=8; gx++){ ctx.beginPath(); ctx.moveTo(W/2+gx*u,0); ctx.lineTo(W/2+gx*u,H); ctx.stroke(); }
+    var cols=Math.ceil(xh); for(var gx=-cols; gx<=cols; gx++){ ctx.beginPath(); ctx.moveTo(W/2+gx*u,0); ctx.lineTo(W/2+gx*u,H); ctx.stroke(); }
     var uy=H/ (H/u); var rows=Math.round(H/u);
     for(var gy=-rows; gy<=rows; gy++){ ctx.beginPath(); ctx.moveTo(0,H/2+gy*u); ctx.lineTo(W,H/2+gy*u); ctx.stroke(); }
     // axes
@@ -588,7 +588,7 @@
     function px(x){ return W/2 + x*u; }
     function py(y){ return H/2 - y*u; }
     ctx.strokeStyle="#818cf8"; ctx.lineWidth=3.5; ctx.beginPath();
-    ctx.moveTo(px(-8), py(m*-8+b)); ctx.lineTo(px(8), py(m*8+b)); ctx.stroke();
+    ctx.moveTo(px(-xh), py(m*-xh+b)); ctx.lineTo(px(xh), py(m*xh+b)); ctx.stroke();
     // intercept dot
     ctx.fillStyle="#fbbf24"; ctx.beginPath(); ctx.arc(px(0),py(b),6,0,2*Math.PI); ctx.fill();
     $("eqLive").innerHTML='y = <span class="m">'+m+'</span>x '+(b<0?"− "+Math.abs(b):"+ "+b);
